@@ -39,6 +39,7 @@ func (a *Application) Init() tea.Cmd {
 }
 
 func (a *Application) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	// log.Println("Updated", msg)
 
 	// application level messages
 	switch msg := msg.(type) {
