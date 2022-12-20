@@ -6,7 +6,6 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/spf13/viper"
 )
 
 type Application struct {
@@ -16,13 +15,15 @@ type Application struct {
 	program *tea.Program
 }
 
+type ConfigUpdatedMsg struct{}
+
 func NewApplication() *Application {
-	return &Application{}
+	var a = &Application{}
+	a.program = tea.NewProgram(a, tea.WithAltScreen())
+	return a
 }
 
 func (a *Application) Start() {
-	a.program = tea.NewProgram(a, tea.WithAltScreen())
-
 	if _, err := a.program.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)
@@ -32,8 +33,7 @@ func (a *Application) Start() {
 func (a *Application) Init() tea.Cmd {
 	a.panels = append(a.panels, NewDatePanel())
 
-	var quoteUrl = viper.GetString("quote.url")
-	a.panels = append(a.panels, NewQuotePanel(quoteUrl))
+	a.panels = append(a.panels, NewQuotePanel("quote"))
 
 	a.panels = append(a.panels, NewPomodoroPanel())
 
@@ -106,4 +106,8 @@ func (a *Application) View() string {
 	)
 
 	return lipgloss.JoinVertical(lipgloss.Left, title, topPanels, bottomPanels)
+}
+
+func (a *Application) HandleConfigChange() {
+	a.program.Send(ConfigUpdatedMsg{})
 }

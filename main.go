@@ -1,26 +1,20 @@
 package main
 
 import (
+	"app/config"
 	"app/logger"
 	"app/ui"
-	"log"
-
-	"github.com/spf13/viper"
 )
 
 func main() {
+	logger.Initialize()
 	defer logger.Close()
 
-	viper.SetConfigName("app.config")
-	viper.SetConfigType("toml")
-	viper.AddConfigPath(".")
-
-	err := viper.ReadInConfig()
-	if err != nil {
-		log.Fatalf("fatal error config file: %s", err.Error())
-	}
-	viper.WatchConfig()
-
 	var app = ui.NewApplication()
+
+	config.Initialize()
+	config.OnChange(app.HandleConfigChange)
+	config.StartWatch()
+
 	app.Start()
 }

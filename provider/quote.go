@@ -36,6 +36,10 @@ func (p *QuoteProvider) Message() string {
 	return msg
 }
 
+func (p *QuoteProvider) SetUrl(val string) {
+	p.url = val
+}
+
 func (p *QuoteProvider) Refresh() error {
 	p.data.Text = ""
 
