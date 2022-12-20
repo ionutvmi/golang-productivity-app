@@ -6,6 +6,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/spf13/viper"
 )
 
 type Application struct {
@@ -30,7 +31,9 @@ func (a *Application) Start() {
 
 func (a *Application) Init() tea.Cmd {
 	a.panels = append(a.panels, NewDatePanel())
-	a.panels = append(a.panels, NewQuotePanel())
+
+	var quoteUrl = viper.GetString("quote.url")
+	a.panels = append(a.panels, NewQuotePanel(quoteUrl))
 
 	var appCmds = []tea.Cmd{}
 

@@ -10,15 +10,18 @@ import (
 type QuotePanelTickMsg struct{}
 
 type quotePanel struct {
+	url      string
 	provider provider.QuoteProvider
 }
 
-func NewQuotePanel() *quotePanel {
-	return &quotePanel{}
+func NewQuotePanel(url string) *quotePanel {
+	return &quotePanel{
+		url: url,
+	}
 }
 
 func (p *quotePanel) Init() tea.Cmd {
-	p.provider = *provider.NewQuoteProvider("https://uselessfacts.jsph.pl/random.json?language=en")
+	p.provider = *provider.NewQuoteProvider(p.url)
 	return func() tea.Msg {
 		p.provider.Refresh()
 		return QuotePanelTickMsg{}
