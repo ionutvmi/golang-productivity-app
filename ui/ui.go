@@ -9,9 +9,10 @@ import (
 )
 
 type Application struct {
-	width  int
-	height int
-	panels []panel
+	width   int
+	height  int
+	panels  []panel
+	program *tea.Program
 }
 
 func NewApplication() *Application {
@@ -19,8 +20,9 @@ func NewApplication() *Application {
 }
 
 func (a *Application) Start() {
-	var program = tea.NewProgram(a, tea.WithAltScreen())
-	if _, err := program.Run(); err != nil {
+	a.program = tea.NewProgram(a, tea.WithAltScreen())
+
+	if _, err := a.program.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)
 	}
@@ -85,7 +87,7 @@ func (a *Application) View() string {
 		Width(panelWidth).
 		Height(panelHeight).
 		BorderStyle(lipgloss.RoundedBorder()).
-		Align(lipgloss.Center, lipgloss.Top).
+		Align(lipgloss.Center, lipgloss.Center).
 		Padding(1)
 
 	var topPanels = lipgloss.JoinHorizontal(lipgloss.Top,

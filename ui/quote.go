@@ -38,5 +38,4 @@ func (p *quotePanel) Update(msg tea.Msg) tea.Cmd {
 
 func (p *quotePanel) Render() string {
 	return p.provider.Message()
-
 }
