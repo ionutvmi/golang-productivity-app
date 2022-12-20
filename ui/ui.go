@@ -54,12 +54,14 @@ func (a *Application) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.height = msg.Height
 	}
 
-	// panel specific messages
+	var appCmds = []tea.Cmd{}
+
+	// panel specific updates
 	for _, panel := range a.panels {
-		panel.Update(msg)
+		appCmds = append(appCmds, panel.Update(msg))
 	}
 
-	return a, nil
+	return a, tea.Batch(appCmds...)
 }
 
 func (a *Application) View() string {
