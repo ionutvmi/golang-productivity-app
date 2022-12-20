@@ -6,6 +6,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+type DatePanelTickMsg struct{}
+
 type datePanel struct {
 	now time.Time
 }
@@ -16,14 +18,21 @@ func NewDatePanel() *datePanel {
 
 func (d *datePanel) Init() tea.Cmd {
 	d.now = time.Now()
-	return nil
+
+	return func() tea.Msg {
+		return DatePanelTickMsg{}
+	}
 }
 
 func (d *datePanel) Update(msg tea.Msg) tea.Cmd {
-	return tea.Tick(1*time.Second, func(now time.Time) tea.Msg {
-		d.now = now
-		return nil
-	})
+	switch msg.(type) {
+	case DatePanelTickMsg:
+		return tea.Tick(1*time.Second, func(now time.Time) tea.Msg {
+			d.now = now
+			return DatePanelTickMsg{}
+		})
+	}
+	return nil
 }
 
 func (d *datePanel) Render() string {

@@ -28,6 +28,7 @@ func (a *Application) Start() {
 
 func (a *Application) Init() tea.Cmd {
 	a.panels = append(a.panels, NewDatePanel())
+	a.panels = append(a.panels, NewQuotePanel())
 
 	var appCmds = []tea.Cmd{}
 
@@ -84,11 +85,12 @@ func (a *Application) View() string {
 		Width(panelWidth).
 		Height(panelHeight).
 		BorderStyle(lipgloss.RoundedBorder()).
-		Align(lipgloss.Center, lipgloss.Center)
+		Align(lipgloss.Center, lipgloss.Top).
+		Padding(1)
 
 	var topPanels = lipgloss.JoinHorizontal(lipgloss.Top,
 		panelStyle.Render(a.panels[0].Render()),
-		panelStyle.Render("Hello top right"),
+		panelStyle.Render(a.panels[1].Render()),
 	)
 
 	var bottomPanels = lipgloss.JoinHorizontal(lipgloss.Top,
