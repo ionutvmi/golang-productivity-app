@@ -1,3 +1,6 @@
 
+[database]
+path="data.db"
+
 [quote]
 url = "https://uselessfacts.jsph.pl/random.json?language=en"

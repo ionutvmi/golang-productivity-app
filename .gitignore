@@ -22,3 +22,4 @@ go.work
 
 # application specific
 app.log
+data.db
