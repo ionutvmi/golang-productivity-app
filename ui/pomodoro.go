@@ -1,6 +1,11 @@
 package ui
 
 import (
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -8,63 +13,86 @@ import (
 // type pomodoroPanelTickMsg struct{}
 
 type pomodoroPanel struct {
+	setTimeButton *Button
+	startButton   *Button
+	stopButton    *Button
+
+	timer timer.Model
 }
 
 func NewPomodoroPanel() *pomodoroPanel {
-	return &pomodoroPanel{}
-}
-
-func (d *pomodoroPanel) Init() tea.Cmd {
-
-	return func() tea.Msg {
-		return nil
+	return &pomodoroPanel{
+		setTimeButton: NewButton("pomodoroSetTime", "Set time", ButtonSecondary),
+		startButton:   NewButton("pomodoroStart", "Start", ButtonPrimary),
+		stopButton:    NewButton("pomodoroStop", "Stop", ButtonDanger),
+		timer:         timer.Model{Timeout: 25 * time.Minute},
 	}
 }
 
+func (d *pomodoroPanel) Init() tea.Cmd {
+	return nil
+}
+
 func (d *pomodoroPanel) Update(msg tea.Msg) tea.Cmd {
-	// switch msg.(type) {
-	// case pomodoroPanelTickMsg:
-	// 	return tea.Tick(1*time.Second, func(now time.Time) tea.Msg {
-	// 		d.now = now
-	// 		return pomodoroPanelTickMsg{}
-	// 	})
-	// }
+	switch msg := msg.(type) {
+	case tea.MouseMsg:
+		if msg.Type == tea.MouseLeft {
+			if d.setTimeButton.InBounds(msg) {
+				log.Println("clicked on set time")
+			}
+			if d.startButton.InBounds(msg) {
+				d.timer = timer.New(10 * time.Second)
+				return d.timer.Init()
+			}
+			if d.stopButton.InBounds(msg) {
+				return d.timer.Stop()
+			}
+		}
+	case timer.TickMsg:
+		var cmd tea.Cmd
+		d.timer, cmd = d.timer.Update(msg)
+
+		return cmd
+
+	case timer.StartStopMsg:
+		var cmd tea.Cmd
+		d.timer, cmd = d.timer.Update(msg)
+		return cmd
+
+	case timer.TimeoutMsg:
+		log.Println("timer timeout")
+
+		// case pomodoroPanelTickMsg:
+		// 	return tea.Tick(1*time.Second, func(now time.Time) tea.Msg {
+		// 		d.now = now
+		// 		return pomodoroPanelTickMsg{}
+		// 	})
+	}
 	return nil
 }
 
 func (d *pomodoroPanel) Render() string {
-	var primaryButton = lipgloss.
-		NewStyle().
-		Foreground(lipgloss.Color("#FFFFFF")).
-		Background(lipgloss.Color("#0c450e")).
-		Padding(0, 2).
-		MarginRight(1).
-		Margin(1)
+	var seconds = int(d.timer.Timeout.Seconds())
 
-	var secondaryButton = lipgloss.
-		NewStyle().
-		Foreground(lipgloss.Color("#FFFFFF")).
-		Background(lipgloss.Color("#222222")).
-		Padding(0, 2).
-		MarginRight(1).
-		Margin(1)
+	var timerDisplay = "" +
+		fmt.Sprintf("%02d", seconds/60) +
+		":" +
+		fmt.Sprintf("%02d", seconds%60)
 
-	var dangerButton = lipgloss.
-		NewStyle().
-		Foreground(lipgloss.Color("#FFFFFF")).
-		Background(lipgloss.Color("#450a0a")).
-		Padding(0, 2).
-		MarginRight(1).
-		Margin(1)
+	var buttons = []string{d.setTimeButton.Render()}
+
+	if d.timer.Running() {
+		buttons = append(buttons, d.stopButton.Render())
+	} else {
+		buttons = append(buttons, d.startButton.Render())
+	}
 
 	return lipgloss.JoinVertical(
 		lipgloss.Center,
-		"25:00",
+		timerDisplay,
 		lipgloss.JoinHorizontal(
 			lipgloss.Top,
-			secondaryButton.Render("Set time"),
-			primaryButton.Render("Start"),
-			dangerButton.Render("Stop"),
+			buttons...,
 		),
 	)
 }

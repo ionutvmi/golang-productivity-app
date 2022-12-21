@@ -6,6 +6,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	zone "github.com/lrstanley/bubblezone"
 )
 
 type Application struct {
@@ -19,11 +20,13 @@ type ConfigUpdatedMsg struct{}
 
 func NewApplication() *Application {
 	var a = &Application{}
-	a.program = tea.NewProgram(a, tea.WithAltScreen())
+	a.program = tea.NewProgram(a, tea.WithAltScreen(), tea.WithMouseAllMotion())
 	return a
 }
 
 func (a *Application) Start() {
+	zone.NewGlobal()
+
 	if _, err := a.program.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)
@@ -105,7 +108,8 @@ func (a *Application) View() string {
 		panelStyle.Render("Hello bottom right"),
 	)
 
-	return lipgloss.JoinVertical(lipgloss.Left, title, topPanels, bottomPanels)
+	var screen = lipgloss.JoinVertical(lipgloss.Left, title, topPanels, bottomPanels)
+	return zone.Scan(screen)
 }
 
 func (a *Application) HandleConfigChange() {
