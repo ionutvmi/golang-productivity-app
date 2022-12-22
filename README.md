@@ -1,3 +1,4 @@
+
 # Productivity app
 
 Small TUI application.
@@ -30,3 +31,4 @@ go build -o productivity-app.exe main.go
 - https://pkg.go.dev/github.com/charmbracelet/bubbletea
 - https://github.com/charmbracelet/bubbletea/tree/master/examples
 - https://gitlab.com/cznic/sqlite
+- https://github.com/jmoiron/sqlx/

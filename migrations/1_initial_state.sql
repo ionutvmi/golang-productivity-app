@@ -1,7 +1,7 @@
 -- +migrate Up
 -- SQL in section 'Up' is executed when this migration is applied
 CREATE TABLE pomodoro_sessions (
-    session_id INT,
+    session_id INTEGER PRIMARY KEY AUTOINCREMENT,
     created_date DATETIME,
     modified_date DATETIME
 );

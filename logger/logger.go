@@ -8,7 +8,7 @@ import (
 
 var appLogFile *os.File
 
-func Initialize() {
+func MustInitialize() {
 	f, err := os.OpenFile("app.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 
 	if err != nil {

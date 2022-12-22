@@ -2,23 +2,24 @@ package main
 
 import (
 	"app/config"
+	"app/database"
 	"app/logger"
 	"app/migrations"
 	"app/ui"
-	"log"
 )
 
 func main() {
-	logger.Initialize()
+	logger.MustInitialize()
 	defer logger.Close()
 
-	config.Initialize()
+	config.MustInitialize()
 
-	err := migrations.Run(config.GetString("database.path"))
+	var dbPath = config.GetString("database.path")
 
-	if err != nil {
-		log.Fatalf("Failed to executed migrations %s", err.Error())
-	}
+	migrations.MustRun(dbPath)
+
+	database.MustInitialize(dbPath)
+	defer database.Close()
 
 	var app = ui.NewApplication()
 

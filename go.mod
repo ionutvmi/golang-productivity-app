@@ -7,9 +7,11 @@ require (
 	github.com/charmbracelet/bubbletea v0.23.1
 	github.com/charmbracelet/lipgloss v0.6.0
 	github.com/fsnotify/fsnotify v1.6.0
+	github.com/jmoiron/sqlx v1.3.5
 	github.com/lrstanley/bubblezone v0.0.0-20221217035003-70987ad7d934
 	github.com/rubenv/sql-migrate v1.2.0
 	github.com/spf13/viper v1.14.0
+	modernc.org/sqlite v1.20.0
 )
 
 require (
@@ -54,7 +56,6 @@ require (
 	modernc.org/mathutil v1.5.0 // indirect
 	modernc.org/memory v1.4.0 // indirect
 	modernc.org/opt v0.1.3 // indirect
-	modernc.org/sqlite v1.20.0 // indirect
 	modernc.org/strutil v1.1.3 // indirect
 	modernc.org/token v1.0.1 // indirect
 )

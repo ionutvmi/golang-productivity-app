@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func Initialize() {
+func MustInitialize() {
 	viper.SetConfigName("app.config")
 	viper.SetConfigType("toml")
 	viper.AddConfigPath(".")
