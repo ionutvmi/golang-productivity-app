@@ -32,7 +32,7 @@ type pomodoroPanel struct {
 }
 
 func NewPomodoroPanel() *pomodoroPanel {
-	var panel = &pomodoroPanel{
+	var p = &pomodoroPanel{
 		setTimeButton: NewButton("pomodoroSetTime", "Set time", ButtonSecondary),
 		startButton:   NewButton("pomodoroStart", "Start", ButtonPrimary),
 		stopButton:    NewButton("pomodoroStop", "Stop", ButtonDanger),
@@ -41,110 +41,110 @@ func NewPomodoroPanel() *pomodoroPanel {
 		action:        pomodoroView,
 	}
 
-	panel.textInput.Placeholder = "Time in minutes"
-	panel.textInput.CharLimit = 3
-	panel.textInput.Width = 0
-	panel.textInput.SetCursorMode(textinput.CursorStatic)
-	panel.textInput.SetValue("25")
+	p.textInput.Placeholder = "Time in minutes"
+	p.textInput.CharLimit = 3
+	p.textInput.Width = 0
+	p.textInput.SetCursorMode(textinput.CursorStatic)
+	p.textInput.SetValue("25")
 
-	panel.textInput.Validate = func(s string) error {
+	p.textInput.Validate = func(s string) error {
 		_, err := strconv.Atoi(s)
 		return err
 	}
 
-	return panel
+	p.setTimeButton.AddOnClick(func() tea.Cmd {
+		p.action = pomodoroSetTime
+		p.textInput.Focus()
+		p.lastTextInputValue = p.textInput.Value()
+
+		return nil
+	})
+
+	p.startButton.AddOnClick(func() tea.Cmd {
+		p.timer = timer.New(p.timeout())
+		return p.timer.Init()
+	})
+
+	p.stopButton.AddOnClick(func() tea.Cmd {
+		return p.timer.Stop()
+	})
+
+	return p
 }
 
-func (d *pomodoroPanel) Init() tea.Cmd {
+func (p *pomodoroPanel) Init() tea.Cmd {
 	return nil
 }
 
-func (d *pomodoroPanel) Update(msg tea.Msg) tea.Cmd {
-	var cmd tea.Cmd
+func (p *pomodoroPanel) Update(msg tea.Msg) tea.Cmd {
+	var allCmds = []tea.Cmd{}
+	var isStartStopMsg = false
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEnter:
-			if d.action == pomodoroSetTime {
-				d.timer.Timeout = d.timeout()
-				d.action = pomodoroView
+			if p.action == pomodoroSetTime {
+				p.timer.Timeout = p.timeout()
+				p.action = pomodoroView
 			}
 		case tea.KeyEsc:
-			if d.action == pomodoroSetTime {
-				d.action = pomodoroView
-				d.textInput.SetValue(d.lastTextInputValue)
+			if p.action == pomodoroSetTime {
+				p.action = pomodoroView
+				p.textInput.SetValue(p.lastTextInputValue)
 			}
 		}
-	case tea.MouseMsg:
-		if msg.Type == tea.MouseLeft {
-			if d.setTimeButton.InBounds(msg) {
-				d.action = pomodoroSetTime
-				d.textInput.Focus()
-				d.lastTextInputValue = d.textInput.Value()
-			}
-			if d.startButton.InBounds(msg) {
-				d.timer = timer.New(d.timeout())
-				return d.timer.Init()
-			}
-			if d.stopButton.InBounds(msg) {
-				return d.timer.Stop()
-			}
-		}
-	case timer.TickMsg:
-		d.timer, cmd = d.timer.Update(msg)
-
-		return cmd
 
 	case timer.StartStopMsg:
-		d.timer, cmd = d.timer.Update(msg)
-
-		if !d.timer.Running() {
-			d.timer.Timeout = d.timeout()
-		}
-
-		return cmd
+		isStartStopMsg = true
 
 	case timer.TimeoutMsg:
 		log.Println("timer timeout")
-
-		// case pomodoroPanelTickMsg:
-		// 	return tea.Tick(1*time.Second, func(now time.Time) tea.Msg {
-		// 		d.now = now
-		// 		return pomodoroPanelTickMsg{}
-		// 	})
 	}
 
-	d.textInput, cmd = d.textInput.Update(msg)
+	allCmds = append(allCmds, p.setTimeButton.Update(msg))
+	allCmds = append(allCmds, p.startButton.Update(msg))
+	allCmds = append(allCmds, p.stopButton.Update(msg))
 
-	return cmd
+	var cmd tea.Cmd
+	p.textInput, cmd = p.textInput.Update(msg)
+	allCmds = append(allCmds, cmd)
+
+	p.timer, cmd = p.timer.Update(msg)
+	allCmds = append(allCmds, cmd)
+
+	if isStartStopMsg && !p.timer.Running() {
+		p.timer.Timeout = p.timeout()
+	}
+
+	return tea.Batch(allCmds...)
 }
 
-func (d *pomodoroPanel) Render() string {
-	if d.action == pomodoroSetTime {
+func (p *pomodoroPanel) Render() string {
+	if p.action == pomodoroSetTime {
 		return lipgloss.JoinVertical(
 			lipgloss.Top,
 			lipgloss.NewStyle().Width(30).Align(lipgloss.Center).Render("Set Time"),
 			"",
 			"",
 			"",
-			d.textInput.View(),
+			p.textInput.View(),
 		)
 	}
 
-	var seconds = int(d.timer.Timeout.Seconds())
+	var seconds = int(p.timer.Timeout.Seconds())
 
 	var timerDisplay = "" +
 		fmt.Sprintf("%02d", seconds/60) +
 		":" +
 		fmt.Sprintf("%02d", seconds%60)
 
-	var buttons = []string{d.setTimeButton.Render()}
+	var buttons = []string{p.setTimeButton.Render()}
 
-	if d.timer.Running() {
-		buttons = append(buttons, d.stopButton.Render())
+	if p.timer.Running() {
+		buttons = append(buttons, p.stopButton.Render())
 	} else {
-		buttons = append(buttons, d.startButton.Render())
+		buttons = append(buttons, p.startButton.Render())
 	}
 
 	return lipgloss.JoinVertical(
@@ -159,11 +159,11 @@ func (d *pomodoroPanel) Render() string {
 	)
 }
 
-func (d *pomodoroPanel) timeout() time.Duration {
-	var val, err = strconv.Atoi(d.textInput.Value())
+func (p *pomodoroPanel) timeout() time.Duration {
+	var val, err = strconv.Atoi(p.textInput.Value())
 
 	if err != nil {
-		log.Println("Failed to process the time value", err.Error(), d.textInput.Value())
+		log.Println("Failed to process the time value", err.Error(), p.textInput.Value())
 		val = 25
 	}
 
