@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"app/database"
+	"app/models"
 	"fmt"
 	"log"
 	"strconv"
@@ -29,6 +31,8 @@ type pomodoroPanel struct {
 	lastTextInputValue string
 
 	action pomodoroPanelAction
+
+	activePomodoro *models.Pomodoro
 }
 
 func NewPomodoroPanel() *pomodoroPanel {
@@ -62,6 +66,7 @@ func NewPomodoroPanel() *pomodoroPanel {
 
 	p.startButton.AddOnClick(func() tea.Cmd {
 		p.timer = timer.New(p.timeout())
+		p.startPomodoro()
 		return p.timer.Init()
 	})
 
@@ -99,7 +104,7 @@ func (p *pomodoroPanel) Update(msg tea.Msg) tea.Cmd {
 		isStartStopMsg = true
 
 	case timer.TimeoutMsg:
-		log.Println("timer timeout")
+		p.endPomodoro()
 	}
 
 	allCmds = append(allCmds, p.setTimeButton.Update(msg))
@@ -157,6 +162,28 @@ func (p *pomodoroPanel) Render() string {
 			buttons...,
 		),
 	)
+}
+
+func (p *pomodoroPanel) startPomodoro() {
+	p.activePomodoro = &models.Pomodoro{
+		StartDate: time.Now().UTC(),
+		SessionType: models.PomodoroType{
+			ID: 1,
+		},
+	}
+}
+
+func (p *pomodoroPanel) endPomodoro() error {
+	p.activePomodoro.EndDate = time.Now().UTC()
+
+	var err = database.InsertPomodoro(p.activePomodoro)
+
+	if err != nil {
+		log.Printf("Failed to save pomodoro %s", err.Error())
+		return err
+	}
+
+	return nil
 }
 
 func (p *pomodoroPanel) timeout() time.Duration {
