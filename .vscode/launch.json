@@ -5,12 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug Application",
+            "name": "Launch and Debug Application",
             "type": "go",
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/main.go",
             "console": "externalTerminal"
+        },
+        {
+            "name": "Attach to Process",
+            "type": "go",
+            "request": "attach",
+            "mode": "local",
+            "processId": 0
         }
     ]
 }
