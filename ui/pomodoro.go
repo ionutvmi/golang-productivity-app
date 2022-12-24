@@ -15,6 +15,11 @@ import (
 )
 
 type pomodoroPanelAction int
+type startPomodoroTimerMsg struct{}
+type stopPomodoroTimerMsg struct{}
+type setTimePomodoroMsg struct{}
+type cancelSetTimePomodoroMsg struct{}
+type saveSetTimePomodoroMsg struct{}
 
 const (
 	pomodoroView pomodoroPanelAction = iota
@@ -57,21 +62,21 @@ func NewPomodoroPanel() *pomodoroPanel {
 	}
 
 	p.setTimeButton.AddOnClick(func() tea.Cmd {
-		p.action = pomodoroSetTime
-		p.textInput.Focus()
-		p.lastTextInputValue = p.textInput.Value()
-
-		return nil
+		return func() tea.Msg {
+			return setTimePomodoroMsg{}
+		}
 	})
 
 	p.startButton.AddOnClick(func() tea.Cmd {
-		p.timer = timer.New(p.timeout())
-		p.startPomodoro()
-		return p.timer.Init()
+		return func() tea.Msg {
+			return startPomodoroTimerMsg{}
+		}
 	})
 
 	p.stopButton.AddOnClick(func() tea.Cmd {
-		return p.timer.Stop()
+		return func() tea.Msg {
+			return stopPomodoroTimerMsg{}
+		}
 	})
 
 	return p
@@ -85,23 +90,39 @@ func (p *pomodoroPanel) Update(msg tea.Msg) tea.Cmd {
 	var allCmds = []tea.Cmd{}
 	var isStartStopMsg = false
 
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.Type {
-		case tea.KeyEnter:
-			if p.action == pomodoroSetTime {
-				p.timer.Timeout = p.timeout()
-				p.action = pomodoroView
-			}
-		case tea.KeyEsc:
-			if p.action == pomodoroSetTime {
-				p.action = pomodoroView
-				p.textInput.SetValue(p.lastTextInputValue)
-			}
-		}
+	switch msg.(type) {
 
 	case timer.StartStopMsg:
 		isStartStopMsg = true
+
+	case startPomodoroTimerMsg:
+		p.timer = timer.New(p.timeout())
+		p.startPomodoro()
+		allCmds = append(allCmds, p.timer.Init())
+
+	case stopPomodoroTimerMsg:
+		allCmds = append(allCmds, p.timer.Stop())
+
+	case setTimePomodoroMsg:
+		if p.timer.Running() {
+			allCmds = append(allCmds, p.timer.Stop())
+		}
+
+		p.action = pomodoroSetTime
+		p.textInput.Focus()
+		p.lastTextInputValue = p.textInput.Value()
+
+	case cancelSetTimePomodoroMsg:
+		if p.action == pomodoroSetTime {
+			p.action = pomodoroView
+			p.textInput.SetValue(p.lastTextInputValue)
+		}
+
+	case saveSetTimePomodoroMsg:
+		if p.action == pomodoroSetTime {
+			p.timer.Timeout = p.timeout()
+			p.action = pomodoroView
+		}
 
 	case timer.TimeoutMsg:
 		p.endPomodoro()

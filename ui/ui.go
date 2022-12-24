@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	zone "github.com/lrstanley/bubblezone"
@@ -14,12 +16,55 @@ type Application struct {
 	height  int
 	panels  []panel
 	program *tea.Program
+	help    help.Model
+	keymap  keymap
+}
+
+type keymap struct {
+	start   key.Binding
+	stop    key.Binding
+	setTime key.Binding
+	quit    key.Binding
+	cancel  key.Binding
+	save    key.Binding
 }
 
 type ConfigUpdatedMsg struct{}
 
 func NewApplication() *Application {
-	var a = &Application{}
+	var a = &Application{
+		keymap: keymap{
+			start: key.NewBinding(
+				key.WithKeys("s"),
+				key.WithHelp("s", "start"),
+			),
+			stop: key.NewBinding(
+				key.WithKeys("s"),
+				key.WithHelp("s", "stop"),
+			),
+			setTime: key.NewBinding(
+				key.WithKeys("t"),
+				key.WithHelp("t", "time set"),
+			),
+			quit: key.NewBinding(
+				key.WithKeys("q", "ctrl+c"),
+				key.WithHelp("q", "quit"),
+			),
+			cancel: key.NewBinding(
+				key.WithKeys("esc"),
+				key.WithHelp("esc", "cancel"),
+			),
+			save: key.NewBinding(
+				key.WithKeys("enter"),
+				key.WithHelp("enter", "save"),
+			),
+		},
+	}
+
+	a.keymap.stop.SetEnabled(false)
+	a.keymap.save.SetEnabled(false)
+	a.keymap.cancel.SetEnabled(false)
+
 	a.program = tea.NewProgram(a, tea.WithAltScreen(), tea.WithMouseAllMotion())
 	return a
 }
@@ -54,20 +99,70 @@ func (a *Application) Init() tea.Cmd {
 func (a *Application) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// log.Println("Updated", msg)
 
+	var appCmds = []tea.Cmd{}
+
 	// application level messages
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q":
+		switch {
+		case key.Matches(msg, a.keymap.quit):
 			return a, tea.Quit
+		case key.Matches(msg, a.keymap.start):
+			appCmds = append(appCmds, func() tea.Msg {
+				return startPomodoroTimerMsg{}
+			})
+		case key.Matches(msg, a.keymap.stop):
+			appCmds = append(appCmds, func() tea.Msg {
+				return stopPomodoroTimerMsg{}
+			})
+		case key.Matches(msg, a.keymap.setTime):
+			appCmds = append(appCmds, func() tea.Msg {
+				return setTimePomodoroMsg{}
+			})
+
+		case key.Matches(msg, a.keymap.cancel):
+			appCmds = append(appCmds, func() tea.Msg {
+				return cancelSetTimePomodoroMsg{}
+			})
+
+		case key.Matches(msg, a.keymap.save):
+			appCmds = append(appCmds, func() tea.Msg {
+				return saveSetTimePomodoroMsg{}
+			})
 		}
+
+	case startPomodoroTimerMsg:
+		a.keymap.start.SetEnabled(false)
+
+		a.keymap.stop.SetEnabled(true)
+
+	case stopPomodoroTimerMsg:
+		a.keymap.stop.SetEnabled(false)
+
+		a.keymap.start.SetEnabled(true)
+
+	case setTimePomodoroMsg:
+		a.keymap.stop.SetEnabled(false)
+		a.keymap.start.SetEnabled(false)
+		a.keymap.setTime.SetEnabled(false)
+		a.keymap.quit.SetEnabled(false)
+
+		a.keymap.cancel.SetEnabled(true)
+		a.keymap.save.SetEnabled(true)
+
+	case cancelSetTimePomodoroMsg, saveSetTimePomodoroMsg:
+		a.keymap.stop.SetEnabled(false)
+		a.keymap.start.SetEnabled(true)
+		a.keymap.setTime.SetEnabled(true)
+		a.keymap.quit.SetEnabled(true)
+
+		a.keymap.cancel.SetEnabled(false)
+		a.keymap.save.SetEnabled(false)
 
 	case tea.WindowSizeMsg:
 		a.width = msg.Width
 		a.height = msg.Height
 	}
-
-	var appCmds = []tea.Cmd{}
 
 	// panel specific updates
 	for _, panel := range a.panels {
@@ -90,7 +185,10 @@ func (a *Application) View() string {
 	var title = titleStyle.Render("Productivity App")
 	var titleHeight = lipgloss.Height(title)
 
-	var panelHeight = a.height/2 - bordersWidth - titleHeight/2
+	var help = a.helpView()
+	var helpHeight = lipgloss.Height(help)
+
+	var panelHeight = a.height/2 - bordersWidth - titleHeight/2 - helpHeight/2
 	var panelWidth = a.width/2 - bordersWidth
 	var panelStyle = lipgloss.
 		NewStyle().
@@ -110,8 +208,25 @@ func (a *Application) View() string {
 		panelStyle.Render(a.panels[3].Render()),
 	)
 
-	var screen = lipgloss.JoinVertical(lipgloss.Left, title, topPanels, bottomPanels)
+	var screen = lipgloss.JoinVertical(
+		lipgloss.Left,
+		title,
+		topPanels,
+		bottomPanels,
+		help,
+	)
 	return zone.Scan(screen)
+}
+
+func (a *Application) helpView() string {
+	return a.help.ShortHelpView([]key.Binding{
+		a.keymap.start,
+		a.keymap.stop,
+		a.keymap.setTime,
+		a.keymap.save,
+		a.keymap.quit,
+		a.keymap.cancel,
+	})
 }
 
 func (a *Application) HandleConfigChange() {
