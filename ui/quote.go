@@ -8,7 +8,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type QuotePanelTickMsg struct{}
+type quotePanelTickMsg struct{}
+type quotePanelUpdatedMsg struct{}
 
 type quotePanel struct {
 	configNs string
@@ -30,20 +31,25 @@ func (p *quotePanel) Init() tea.Cmd {
 
 	return func() tea.Msg {
 		p.provider.Refresh()
-		return QuotePanelTickMsg{}
+		return quotePanelUpdatedMsg{}
 	}
 }
 
 func (p *quotePanel) Update(msg tea.Msg) tea.Cmd {
 	switch msg.(type) {
 	case ConfigUpdatedMsg:
-		p.provider.SetUrl(p.url())
-		p.provider.Refresh()
+		if p.url() != "" {
+			p.provider.SetUrl(p.url())
+		}
+		return func() tea.Msg {
+			p.provider.Refresh()
+			return nil
+		}
 
-	case QuotePanelTickMsg:
+	case quotePanelTickMsg:
 		return tea.Tick(10*time.Second, func(now time.Time) tea.Msg {
 			p.provider.Refresh()
-			return QuotePanelTickMsg{}
+			return quotePanelTickMsg{}
 		})
 	}
 	return nil
