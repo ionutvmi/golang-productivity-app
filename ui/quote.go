@@ -6,6 +6,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type quotePanelTickMsg struct{}
@@ -31,7 +32,7 @@ func (p *quotePanel) Init() tea.Cmd {
 
 	return func() tea.Msg {
 		p.provider.Refresh()
-		return quotePanelUpdatedMsg{}
+		return quotePanelTickMsg{}
 	}
 }
 
@@ -43,7 +44,7 @@ func (p *quotePanel) Update(msg tea.Msg) tea.Cmd {
 		}
 		return func() tea.Msg {
 			p.provider.Refresh()
-			return nil
+			return quotePanelUpdatedMsg{}
 		}
 
 	case quotePanelTickMsg:
@@ -56,5 +57,10 @@ func (p *quotePanel) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (p *quotePanel) Render() string {
-	return p.provider.Message()
+	return lipgloss.JoinVertical(
+		lipgloss.Top,
+		"Random Quote",
+		"",
+		p.provider.Message(),
+	)
 }

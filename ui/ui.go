@@ -206,7 +206,7 @@ func (a *Application) View() string {
 
 	var topPanels = lipgloss.JoinHorizontal(lipgloss.Top,
 		panelStyle.Render(a.panels[0].Render()),
-		panelStyle.Render(a.panels[1].Render()),
+		panelStyle.Align(lipgloss.Center, lipgloss.Top).Render(a.panels[1].Render()),
 	)
 
 	var bottomPanels = lipgloss.JoinHorizontal(lipgloss.Top,
