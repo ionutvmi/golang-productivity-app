@@ -20,4 +20,5 @@ jobs:
           goarch: ${{ matrix.goarch }}
           binary_name: "productivity-app"
           md5sum: false
+          ldflags: "-w -s"
           extra_files: LICENSE app.config.toml
