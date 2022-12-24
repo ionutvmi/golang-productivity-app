@@ -15,6 +15,11 @@ go run main.go
 go build -o productivity-app.exe main.go
 ```
 
+# Screenshot
+
+![](./screenshot.png)
+
+
 ## Application structure
 
 ![](./structure.excalidraw.png)
@@ -32,3 +37,4 @@ go build -o productivity-app.exe main.go
 - https://github.com/charmbracelet/bubbletea/tree/master/examples
 - https://gitlab.com/cznic/sqlite
 - https://github.com/jmoiron/sqlx/
+
