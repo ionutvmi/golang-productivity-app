@@ -21,18 +21,20 @@ type Application struct {
 }
 
 type keymap struct {
-	start   key.Binding
-	stop    key.Binding
-	setTime key.Binding
-	quit    key.Binding
-	cancel  key.Binding
-	save    key.Binding
+	start     key.Binding
+	stop      key.Binding
+	setTime   key.Binding
+	quit      key.Binding
+	forceQuit key.Binding
+	cancel    key.Binding
+	save      key.Binding
 }
 
 type ConfigUpdatedMsg struct{}
 
 func NewApplication() *Application {
 	var a = &Application{
+		help: help.New(),
 		keymap: keymap{
 			start: key.NewBinding(
 				key.WithKeys("s"),
@@ -46,8 +48,11 @@ func NewApplication() *Application {
 				key.WithKeys("t"),
 				key.WithHelp("t", "time set"),
 			),
+			forceQuit: key.NewBinding(
+				key.WithKeys("ctrl+c"),
+			),
 			quit: key.NewBinding(
-				key.WithKeys("q", "ctrl+c"),
+				key.WithKeys("q"),
 				key.WithHelp("q", "quit"),
 			),
 			cancel: key.NewBinding(
@@ -105,7 +110,8 @@ func (a *Application) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, a.keymap.quit):
+		case key.Matches(msg, a.keymap.forceQuit),
+			key.Matches(msg, a.keymap.quit):
 			return a, tea.Quit
 		case key.Matches(msg, a.keymap.start):
 			appCmds = append(appCmds, func() tea.Msg {
@@ -152,12 +158,12 @@ func (a *Application) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case cancelSetTimePomodoroMsg, saveSetTimePomodoroMsg:
 		a.keymap.stop.SetEnabled(false)
+		a.keymap.cancel.SetEnabled(false)
+		a.keymap.save.SetEnabled(false)
+
 		a.keymap.start.SetEnabled(true)
 		a.keymap.setTime.SetEnabled(true)
 		a.keymap.quit.SetEnabled(true)
-
-		a.keymap.cancel.SetEnabled(false)
-		a.keymap.save.SetEnabled(false)
 
 	case tea.WindowSizeMsg:
 		a.width = msg.Width
@@ -219,14 +225,19 @@ func (a *Application) View() string {
 }
 
 func (a *Application) helpView() string {
-	return a.help.ShortHelpView([]key.Binding{
-		a.keymap.start,
-		a.keymap.stop,
-		a.keymap.setTime,
-		a.keymap.save,
-		a.keymap.quit,
-		a.keymap.cancel,
-	})
+	return lipgloss.
+		NewStyle().
+		Width(a.width).
+		Align(lipgloss.Center).Render(
+		a.help.ShortHelpView([]key.Binding{
+			a.keymap.start,
+			a.keymap.stop,
+			a.keymap.setTime,
+			a.keymap.save,
+			a.keymap.quit,
+			a.keymap.cancel,
+		}),
+	)
 }
 
 func (a *Application) HandleConfigChange() {
