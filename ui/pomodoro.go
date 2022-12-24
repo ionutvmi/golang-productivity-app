@@ -215,5 +215,5 @@ func (p *pomodoroPanel) timeout() time.Duration {
 		val = 25
 	}
 
-	return time.Duration(val) * time.Second
+	return time.Duration(val) * time.Minute
 }
