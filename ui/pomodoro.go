@@ -176,7 +176,7 @@ func (p *pomodoroPanel) startPomodoro() {
 func (p *pomodoroPanel) endPomodoro() error {
 	p.activePomodoro.EndDate = time.Now().UTC()
 
-	var err = database.InsertPomodoro(p.activePomodoro)
+	var err = database.PomodoroInsert(p.activePomodoro)
 
 	if err != nil {
 		log.Printf("Failed to save pomodoro %s", err.Error())

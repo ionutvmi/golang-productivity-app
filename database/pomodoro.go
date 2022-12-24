@@ -1,8 +1,10 @@
 package database
 
-import "app/models"
+import (
+	"app/models"
+)
 
-func InsertPomodoro(ps *models.Pomodoro) error {
+func PomodoroInsert(ps *models.Pomodoro) error {
 
 	_, err := db.Exec(
 		`INSERT INTO pomodoro (session_type, start_date, end_date) VALUES (?, ?, ?);`,
@@ -16,4 +18,8 @@ func InsertPomodoro(ps *models.Pomodoro) error {
 	}
 
 	return nil
+}
+
+func PomodoroStats() *models.PomodoroStats {
+	return &models.PomodoroStats{}
 }

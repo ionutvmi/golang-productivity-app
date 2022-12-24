@@ -24,3 +24,4 @@ go.work
 app.log
 data.db
 productivity-app.session.sql
+build/

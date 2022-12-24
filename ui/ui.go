@@ -40,6 +40,8 @@ func (a *Application) Init() tea.Cmd {
 
 	a.panels = append(a.panels, NewPomodoroPanel())
 
+	a.panels = append(a.panels, NewStatsPanel())
+
 	var appCmds = []tea.Cmd{}
 
 	for _, panel := range a.panels {
@@ -105,7 +107,7 @@ func (a *Application) View() string {
 
 	var bottomPanels = lipgloss.JoinHorizontal(lipgloss.Top,
 		panelStyle.Render(a.panels[2].Render()),
-		panelStyle.Render("Hello bottom right"),
+		panelStyle.Render(a.panels[3].Render()),
 	)
 
 	var screen = lipgloss.JoinVertical(lipgloss.Left, title, topPanels, bottomPanels)

@@ -13,3 +13,10 @@ type Pomodoro struct {
 	EndDate     time.Time `db:"end_date"`
 	SessionType PomodoroType
 }
+
+type PomodoroStats struct {
+	Today int
+	Week  int
+	Month int
+	Year  int
+}
