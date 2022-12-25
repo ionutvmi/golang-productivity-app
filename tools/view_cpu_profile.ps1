@@ -4,8 +4,4 @@
 
 $base = Join-Path $PSScriptRoot ../
 
-pushd $base/build
-
-go tool pprof -http=:8080 ./app-debug.exe ./cpu.prof
-
-popd
+go tool pprof -http=:8080 "$base/build/app-debug.exe" "$base/build/cpu.prof"
