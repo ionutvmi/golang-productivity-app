@@ -6,9 +6,21 @@ import (
 	"app/logger"
 	"app/migrations"
 	"app/ui"
+	"log"
+	"os"
+	"runtime/pprof"
 )
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "cpu-profile" {
+		f, err := os.Create("cpu.prof")
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
+
 	logger.MustInitialize()
 	defer logger.Close()
 
