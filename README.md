@@ -17,12 +17,13 @@ go build -o productivity-app.exe main.go
 
 # Screenshot
 
-![](./screenshot.png)
+![](./docs/screenshot.png)
 
 
 ## Application structure
 
-![](./structure.excalidraw.png)
+![](./docs/structure.excalidraw.png)
+![](./docs/local-project-graph.png)
 
 ## Author
 
@@ -37,4 +38,5 @@ go build -o productivity-app.exe main.go
 - https://github.com/charmbracelet/bubbletea/tree/master/examples
 - https://gitlab.com/cznic/sqlite
 - https://github.com/jmoiron/sqlx/
+
 
