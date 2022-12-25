@@ -38,5 +38,5 @@ go build -o productivity-app.exe main.go
 - https://github.com/charmbracelet/bubbletea/tree/master/examples
 - https://gitlab.com/cznic/sqlite
 - https://github.com/jmoiron/sqlx/
-
+- https://github.com/golang-standards/project-layout
 
